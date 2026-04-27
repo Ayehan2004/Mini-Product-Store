@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'mini-product-store-production.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://adorable-cannoli-a6dce0.netlify.app/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
