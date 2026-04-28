@@ -7,21 +7,30 @@ const productRoutes = require('./routes/productRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Connect to MongoDB
-connectDB();
-
 // ✅ CORS configuration (IMPORTANT for deployment)
-const corsOptions = {
-  origin: [
-    'http://localhost:5173', // local frontend (Vite)
-    'http://localhost:3000', // React default
-    'https://your-frontend-name.netlify.app' // 🔥 replace with your real deployed frontend URL
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-};
+// Set CORS_ORIGIN in Railway as a comma-separated list, e.g.
+// CORS_ORIGIN=https://your-site.netlify.app,http://localhost:5173
+const defaultAllowedOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+const corsOriginEnv = process.env.CORS_ORIGIN || '';
+const envAllowedOrigins = corsOriginEnv
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
 
-app.use(cors(corsOptions));
+const allowAllOrigins = envAllowedOrigins.includes('*');
+const allowedOrigins = [...defaultAllowedOrigins, ...envAllowedOrigins];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowAllOrigins) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  })
+);
 
 // Middleware
 app.use(express.json());
@@ -41,6 +50,13 @@ app.use((err, req, res, next) => {
 });
 
 // IMPORTANT: listen on 0.0.0.0 for cloud hosting
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server is running on port ${PORT}`);
+
+  try {
+    await connectDB();
+  } catch (error) {
+    console.error('Startup failed: cannot connect to MongoDB.');
+    process.exit(1);
+  }
 });

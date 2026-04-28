@@ -16,7 +16,7 @@ function App() {
       const response = await getProducts();
       setProducts(response.data);
     } catch (err) {
-      setError('Failed to fetch products. Make sure backend is running on port 5000.');
+      setError('Failed to fetch products. Check the backend URL and that the backend is running.');
       console.error('Error:', err);
     } finally {
       setLoading(false);
