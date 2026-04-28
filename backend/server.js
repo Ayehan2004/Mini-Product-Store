@@ -7,17 +7,29 @@ const productRoutes = require('./routes/productRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Connect to MongoDB
+// ✅ Connect to MongoDB
 connectDB();
+
+// ✅ CORS configuration (IMPORTANT for deployment)
+const corsOptions = {
+  origin: [
+    'http://localhost:5173', // local frontend (Vite)
+    'http://localhost:3000', // React default
+    'https://your-frontend-name.netlify.app' // 🔥 replace with your real deployed frontend URL
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+
+// Middleware
+app.use(express.json());
 
 // Routes
 app.use('/api/products', productRoutes);
 
-// Simple test route
+// Test route
 app.get('/', (req, res) => {
   res.json({ message: 'Store Management API is running!' });
 });
@@ -28,6 +40,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+// IMPORTANT: listen on 0.0.0.0 for cloud hosting
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
 });
